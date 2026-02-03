@@ -564,15 +564,34 @@ As a [user], I want [action] so that [benefit].
 
 ## File Organization
 
+All documentation lives in the `docs/` directory:
+
 ```
 project/
 ├── docs/
-│   ├── spec.md           # Main specification
-│   ├── prompt_plan.md    # Implementation prompts
-│   └── todo.md           # Progress checklist
-├── src/                  # Implementation
-└── tests/                # Test files
+│   ├── README.md                    # Documentation overview
+│   ├── specs/
+│   │   └── [project-name]/
+│   │       └── spec.md              # Main specification
+│   ├── plans/
+│   │   └── [project-name]/
+│   │       ├── implementation-plan.md
+│   │       └── todo.md              # Progress checklist
+│   └── context/
+│       └── [project-name]/
+│           └── discovery.md         # Project conventions
+├── src/                             # Implementation
+└── tests/                           # Test files
 ```
+
+### Standard Paths
+
+| Document | Path |
+|----------|------|
+| Spec | `docs/specs/[project]/spec.md` |
+| Plan | `docs/plans/[project]/implementation-plan.md` |
+| Todo | `docs/plans/[project]/todo.md` |
+| Context | `docs/context/[project]/discovery.md` |
 
 ---
 

@@ -92,14 +92,18 @@ and final review items. Format as markdown checkboxes.
 ## File Organization
 
 ```
-project/
-├── docs/
-│   ├── spec.md           # Main specification
-│   ├── prompt_plan.md    # Implementation prompts
-│   └── todo.md           # Progress checklist
-├── src/
-└── tests/
+docs/
+├── specs/[project]/spec.md           # Specification
+├── plans/[project]/
+│   ├── implementation-plan.md        # Detailed plan
+│   └── todo.md                        # Progress tracking
+└── context/[project]/discovery.md    # Project conventions
 ```
+
+**Standard paths:**
+- Spec: `docs/specs/[project]/spec.md`
+- Plan: `docs/plans/[project]/implementation-plan.md`
+- Todo: `docs/plans/[project]/todo.md`
 
 ## Context Chunk Template
 
