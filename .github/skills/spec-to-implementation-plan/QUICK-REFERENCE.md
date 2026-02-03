@@ -26,6 +26,12 @@ Launch simultaneously:
 
 **After all return:** Synthesize into Project Context Summary.
 
+### Critical Check: Copilot Instructions
+
+**If `.github/copilot-instructions.md` doesn't exist → Add F0 to create it.**
+
+This is the FIRST step in any plan. A comprehensive copilot-instructions.md ensures all AI-generated code follows project conventions.
+
 ---
 
 ## Step 2: Decompose - LAUNCH 1 SUBAGENT
@@ -54,7 +60,7 @@ For each: ID, description, dependencies, dependents, complexity"
 
 | Subagent | Writes Prompts For |
 |----------|-------------------|
-| **Foundation** | F1, F2... |
+| **Foundation** | F0 (if needed), F1, F2... |
 | **Data Layer** | D1, D2, D3... |
 | **Core Logic** | C1, C2, C3... |
 | **Interface** | I1, I2, I3... |
@@ -155,6 +161,7 @@ FINAL: Assemble
 
 ## Quality Checklist
 
+- [ ] .github/copilot-instructions.md exists (or F0 added to create it)
 - [ ] All spec requirements mapped to steps
 - [ ] No step depends on a later step
 - [ ] Each step has verification commands

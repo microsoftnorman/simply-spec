@@ -168,6 +168,244 @@ Return a structured summary of tooling and commands."
 
 Synthesize results into a unified Project Context Summary.
 
+### Critical Check: Copilot Instructions File
+
+**If `.github/copilot-instructions.md` does not exist, add Step F0 to the plan to create it.**
+
+This file is essential for AI-assisted development. The implementation plan should include creating a comprehensive copilot-instructions.md as the FIRST step if one doesn't exist.
+
+#### F0: Create Copilot Instructions (Add if missing)
+
+```markdown
+## Step F0: Create Copilot Instructions File
+
+### Context
+No .github/copilot-instructions.md found. This file is critical for ensuring
+all AI-generated code follows project conventions consistently.
+
+### Instructions
+
+Create file: `.github/copilot-instructions.md`
+
+Analyze the project and create a comprehensive instructions file that includes:
+
+1. **Project Overview** (2-3 sentences describing what this project does)
+
+2. **Tech Stack** (languages, frameworks, key dependencies)
+
+3. **Code Style & Conventions**
+   - Naming conventions (files, variables, functions, classes)
+   - Import ordering
+   - Comment style
+   - Error handling patterns
+
+4. **Architecture Patterns**
+   - Directory structure explanation
+   - Module organization (by feature/type)
+   - Key abstractions and when to use them
+   - Dependency injection patterns
+
+5. **Testing Requirements**
+   - Test framework and how to run tests
+   - Test file naming and location
+   - What to test (unit, integration, e2e)
+   - Mocking patterns
+   - Coverage expectations
+
+6. **File Templates** (example patterns for common file types)
+   - Service/module template
+   - Test file template
+   - Component template (if UI)
+
+7. **Do's and Don'ts**
+   - Required patterns (ALWAYS do X)
+   - Forbidden patterns (NEVER do Y)
+   - Common mistakes to avoid
+
+8. **Commands Reference**
+   - Build, test, lint, dev commands
+   - How to add dependencies
+   - How to run specific tests
+
+### Acceptance Criteria
+- [ ] File exists at .github/copilot-instructions.md
+- [ ] All 8 sections are populated with project-specific details
+- [ ] Examples use actual project patterns (not generic)
+- [ ] Commands are accurate and tested
+
+### Verification
+```bash
+test -f .github/copilot-instructions.md && echo "✓ File exists"
+grep -q "Tech Stack" .github/copilot-instructions.md && echo "✓ Has Tech Stack section"
+grep -q "Testing" .github/copilot-instructions.md && echo "✓ Has Testing section"
+```
+```
+
+#### Copilot Instructions Template
+
+Use this as a starting point, customizing for the specific project:
+
+```markdown
+# Copilot Instructions for [Project Name]
+
+## Project Overview
+[2-3 sentences: What this project does, who it's for, key value prop]
+
+## Tech Stack
+- **Language**: [e.g., TypeScript 5.x]
+- **Runtime**: [e.g., Node.js 20.x]
+- **Framework**: [e.g., Express, Next.js, FastAPI]
+- **Database**: [e.g., PostgreSQL with Prisma]
+- **Testing**: [e.g., Vitest + Testing Library]
+- **Key Dependencies**: [list 3-5 important ones]
+
+## Code Style
+
+### Naming Conventions
+- Files: [e.g., kebab-case for files, PascalCase for components]
+- Variables/Functions: [e.g., camelCase]
+- Classes/Types: [e.g., PascalCase]
+- Constants: [e.g., SCREAMING_SNAKE_CASE]
+- Database tables: [e.g., snake_case]
+
+### Import Order
+1. Node built-ins
+2. External dependencies  
+3. Internal modules (absolute paths)
+4. Relative imports
+5. Type imports
+
+### Error Handling
+- Use custom error classes from `src/errors/`
+- Always include error context
+- Log errors with structured logging
+- Never expose internal errors to clients
+
+## Architecture
+
+### Directory Structure
+```
+src/
+├── services/      # Business logic
+├── routes/        # API endpoints (thin, delegate to services)
+├── models/        # Data models and types
+├── lib/           # Shared utilities
+├── middleware/    # Express middleware
+└── errors/        # Custom error classes
+```
+
+### Key Patterns
+- **Services**: Stateless classes with async methods, injected dependencies
+- **Routes**: Thin controllers that validate input and call services
+- **Repositories**: Abstract database access (if using repository pattern)
+
+## Testing
+
+### Running Tests
+```bash
+npm test              # Run all tests
+npm test -- --watch   # Watch mode
+npm test -- path/to/file  # Run specific file
+```
+
+### Test File Location
+- Unit tests: `src/**/__tests__/*.test.ts`
+- Integration tests: `tests/integration/`
+- E2E tests: `tests/e2e/`
+
+### Test Patterns
+- Use `describe` blocks for grouping
+- Use `it` for individual test cases
+- Mock external services with `vi.mock()`
+- Use factories for test data: `tests/factories/`
+
+### Coverage
+- Minimum 80% line coverage
+- All public methods must have tests
+- All error paths must be tested
+
+## Templates
+
+### Service Template
+```typescript
+import { prisma } from '../lib/prisma';
+import { NotFoundError } from '../errors';
+
+export class ExampleService {
+  async findById(id: string) {
+    const result = await prisma.example.findUnique({ where: { id } });
+    if (!result) throw new NotFoundError('Example', id);
+    return result;
+  }
+}
+
+export const exampleService = new ExampleService();
+```
+
+### Test Template
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { exampleService } from '../example.service';
+
+describe('ExampleService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('findById', () => {
+    it('returns item when found', async () => {
+      // Arrange
+      // Act  
+      // Assert
+    });
+
+    it('throws NotFoundError when not found', async () => {
+      // Test error case
+    });
+  });
+});
+```
+
+## Do's and Don'ts
+
+### ALWAYS
+- ✅ Use TypeScript strict mode
+- ✅ Add JSDoc comments to public APIs
+- ✅ Validate input at API boundaries
+- ✅ Use async/await (not callbacks)
+- ✅ Handle all promise rejections
+- ✅ Write tests for new code
+
+### NEVER
+- ❌ Use `any` type (use `unknown` if needed)
+- ❌ Mutate function parameters
+- ❌ Use `var` (use `const`/`let`)
+- ❌ Commit console.log statements
+- ❌ Skip error handling
+- ❌ Use synchronous file operations
+
+## Commands
+
+```bash
+# Development
+npm run dev          # Start dev server with hot reload
+npm run build        # Build for production
+npm start            # Start production server
+
+# Quality
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix auto-fixable issues
+npm run typecheck    # Run TypeScript compiler
+npm test             # Run tests
+
+# Database
+npm run db:push      # Push schema changes
+npm run db:migrate   # Run migrations
+npm run db:seed      # Seed database
+npm run db:studio    # Open Prisma Studio
+```
+```
+
 ### Files to Analyze
 
 | File/Pattern | What to Extract |
@@ -317,6 +555,7 @@ Return a structured list of all chunks with dependencies mapped."
 ## Implementation Chunks
 
 ### Foundation
+- [ ] F0: Create .github/copilot-instructions.md (if missing)
 - [ ] F1: Project initialization and tooling setup
 - [ ] F2: Configuration and environment setup
 
