@@ -69,8 +69,15 @@ download_file "$BASE_URL/agent-skill-creator/QUICK-REFERENCE.md" "$SKILLS_PATH/a
 download_file "$BASE_URL/agent-skill-creator/examples/SKILL-TEMPLATE.md" "$SKILLS_PATH/agent-skill-creator/examples/SKILL-TEMPLATE.md"
 download_file "$BASE_URL/agent-skill-creator/examples/example-api-endpoint-creator-SKILL.md" "$SKILLS_PATH/agent-skill-creator/examples/example-api-endpoint-creator-SKILL.md"
 
+# Create docs structure
+echo -e "  \033[33mCreating docs structure...\033[0m"
+mkdir -p docs/{specs,plans,context}
+download_file "https://raw.githubusercontent.com/$REPO/$BRANCH/docs/README.md" "docs/README.md"
+
 echo ""
-echo -e "\033[32mDone! Simply Spec skills installed to $SKILLS_PATH\033[0m"
+echo -e "\033[32mDone! Simply Spec installed:\033[0m"
+echo -e "\033[32m  - Skills: $SKILLS_PATH\033[0m"
+echo -e "\033[32m  - Docs:   docs/\033[0m"
 echo ""
 echo -e "\033[36mTry it out:\033[0m"
 echo '  Ask Copilot: "Create a spec for [your feature]"'
@@ -81,10 +88,11 @@ echo ""
 
 ### Option 3: Manual
 ```bash
-# Clone and copy skills to your project
+# Clone and copy to your project
 git clone https://github.com/microsoftnorman/simply-spec.git /tmp/simply-spec
-mkdir -p .github/skills
+mkdir -p .github/skills docs/{specs,plans,context}
 cp -r /tmp/simply-spec/.github/skills/* .github/skills/
+cp /tmp/simply-spec/docs/README.md docs/
 rm -rf /tmp/simply-spec
 ```
 
@@ -125,28 +133,28 @@ Prompt  spec.md  plan.md  Implementation
 
 ## Project Structure
 
+After installation, your project will have:
+
 ```
-.github/skills/
-├── spec-driven-development/     # Spec creation skill
-│   ├── SKILL.md                 # Main instructions
-│   ├── QUICK-REFERENCE.md       # Cheat sheet
-│   └── templates/               # Spec templates
-├── spec-to-implementation-plan/ # Planning skill
-│   ├── SKILL.md
-│   ├── QUICK-REFERENCE.md
-│   └── templates/               # Plan templates
-└── agent-skill-creator/         # Skill creation skill
-    ├── SKILL.md
-    ├── QUICK-REFERENCE.md
-    └── examples/                # Example skills
-```
-
-## Optional: Documentation Structure
-
-Want to organize your specs and plans? Create this structure:
-
-```bash
-mkdir -p docs/{specs,plans,context}
+your-project/
+├── .github/skills/                  # AI agent skills
+│   ├── spec-driven-development/     # Spec creation skill
+│   │   ├── SKILL.md
+│   │   ├── QUICK-REFERENCE.md
+│   │   └── templates/
+│   ├── spec-to-implementation-plan/ # Planning skill
+│   │   ├── SKILL.md
+│   │   ├── QUICK-REFERENCE.md
+│   │   └── templates/
+│   └── agent-skill-creator/         # Skill creation skill
+│       ├── SKILL.md
+│       ├── QUICK-REFERENCE.md
+│       └── examples/
+└── docs/                            # Your documentation
+    ├── README.md                    # Documentation guide
+    ├── specs/                       # Project specifications
+    ├── plans/                       # Implementation plans
+    └── context/                     # Discovery & context docs
 ```
 
 See [docs/README.md](docs/README.md) for the full documentation workflow.

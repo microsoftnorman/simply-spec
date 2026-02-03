@@ -49,8 +49,15 @@ download_file "$BASE_URL/agent-skill-creator/QUICK-REFERENCE.md" "$SKILLS_PATH/a
 download_file "$BASE_URL/agent-skill-creator/examples/SKILL-TEMPLATE.md" "$SKILLS_PATH/agent-skill-creator/examples/SKILL-TEMPLATE.md"
 download_file "$BASE_URL/agent-skill-creator/examples/example-api-endpoint-creator-SKILL.md" "$SKILLS_PATH/agent-skill-creator/examples/example-api-endpoint-creator-SKILL.md"
 
+# Create docs structure
+echo -e "  \033[33mCreating docs structure...\033[0m"
+mkdir -p docs/{specs,plans,context}
+download_file "https://raw.githubusercontent.com/$REPO/$BRANCH/docs/README.md" "docs/README.md"
+
 echo ""
-echo -e "\033[32mDone! Simply Spec skills installed to $SKILLS_PATH\033[0m"
+echo -e "\033[32mDone! Simply Spec installed:\033[0m"
+echo -e "\033[32m  - Skills: $SKILLS_PATH\033[0m"
+echo -e "\033[32m  - Docs:   docs/\033[0m"
 echo ""
 echo -e "\033[36mTry it out:\033[0m"
 echo '  Ask Copilot: "Create a spec for [your feature]"'

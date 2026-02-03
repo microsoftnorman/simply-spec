@@ -92,8 +92,27 @@ foreach ($skill in $skills) {
     }
 }
 
+# Create docs structure
+Write-Host "  Creating docs structure..." -ForegroundColor Yellow
+$docsFolders = @("docs/specs", "docs/plans", "docs/context")
+foreach ($folder in $docsFolders) {
+    if (-not (Test-Path $folder)) {
+        New-Item -ItemType Directory -Path $folder -Force | Out-Null
+    }
+}
+
+# Download docs README
+$docsUrl = "https://raw.githubusercontent.com/$repo/$branch/docs/README.md"
+try {
+    Invoke-WebRequest -Uri $docsUrl -OutFile "docs/README.md" -UseBasicParsing
+} catch {
+    Write-Host "    Skipping docs/README.md (not found)" -ForegroundColor DarkGray
+}
+
 Write-Host ""
-Write-Host "Done! Simply Spec skills installed to $skillsPath" -ForegroundColor Green
+Write-Host "Done! Simply Spec installed:" -ForegroundColor Green
+Write-Host "  - Skills: $skillsPath" -ForegroundColor Green
+Write-Host "  - Docs:   docs/" -ForegroundColor Green
 Write-Host ""
 Write-Host "Try it out:" -ForegroundColor Cyan
 Write-Host '  Ask Copilot: "Create a spec for [your feature]"'
