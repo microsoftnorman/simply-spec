@@ -8,6 +8,8 @@ license: MIT
 
 This skill transforms project specifications into detailed, executable implementation plans that AI coding agents can follow precisely. It analyzes existing project context (instructions, architecture, testing patterns) to create plans that integrate seamlessly with the codebase.
 
+**Key Strategy: Use subagents extensively to parallelize research and analysis tasks.**
+
 ## When to Use This Skill
 
 - Converting a spec.md into an actionable implementation plan
@@ -26,34 +28,149 @@ Before creating an implementation plan:
 
 ---
 
+## Subagent Strategy
+
+**Use subagents (`runSubagent`) aggressively throughout this process.** Subagents excel at:
+
+- **Parallel research**: Gather context from multiple areas simultaneously
+- **Focused analysis**: Deep-dive into specific patterns without losing main thread
+- **Independent verification**: Cross-check assumptions in isolation
+
+### When to Launch Subagents
+
+| Task | Why Subagent? | Parallel? |
+|------|---------------|----------|
+| Analyze instruction files | Focused file reading | Yes - launch 2-3 |
+| Discover architecture patterns | Pattern recognition needs focus | Yes - launch 2-3 |
+| Analyze testing patterns | Framework-specific knowledge | Yes |
+| Research dependencies | Deep-dive into package.json | Yes |
+| Write step prompts | Each step is independent | Yes - launch per phase |
+| Create verification criteria | Isolated from main flow | Yes |
+
+### Subagent Launch Pattern
+
+Launch multiple subagents simultaneously for independent tasks:
+
+```
+// PARALLEL - launch these together:
+Subagent 1: "Analyze instruction files (.github/copilot-instructions.md, CLAUDE.md, CONTRIBUTING.md)"
+Subagent 2: "Analyze architecture (src/ structure, naming conventions, component patterns)"
+Subagent 3: "Analyze testing (test framework, test patterns, coverage config)"
+Subagent 4: "Analyze dependencies and build tooling (package.json, scripts, configs)"
+
+// WAIT for all results, then synthesize
+```
+
+---
+
 ## The Implementation Planning Process
 
 ### Overview
 
 ```
 ┌──────────────────┐
-│  1. DISCOVERY    │  Analyze existing project context
+│  1. DISCOVERY    │  Analyze existing project context (USE SUBAGENTS)
 ├──────────────────┤
-│  2. DECOMPOSE    │  Break spec into logical chunks
+│  2. DECOMPOSE    │  Break spec into logical chunks (USE SUBAGENT)
 ├──────────────────┤
 │  3. SEQUENCE     │  Order tasks by dependencies
 ├──────────────────┤
-│  4. DETAIL       │  Write executable prompts
+│  4. DETAIL       │  Write executable prompts (USE SUBAGENTS)
 ├──────────────────┤
-│  5. VERIFY       │  Add checkpoints & criteria
+│  5. VERIFY       │  Add checkpoints & criteria (USE SUBAGENT)
 └──────────────────┘
 ```
 
 ---
 
-## Step 1: Discovery - Analyze Project Context
+## Step 1: Discovery - Analyze Project Context (SUBAGENT-HEAVY)
 
 Before writing any plan, gather critical context from the existing project.
+
+**⚡ SUBAGENT STRATEGY: Launch 4 parallel subagents to gather context simultaneously.**
+
+### Subagent Deployment for Discovery
+
+Launch these subagents IN PARALLEL:
+
+#### Subagent 1: Instruction Files
+```
+Prompt: "Research this project's instruction files and coding guidelines.
+
+Search for and read:
+- .github/copilot-instructions.md
+- .github/instructions/*.md
+- CLAUDE.md or .claude/settings.json
+- CONTRIBUTING.md
+- Any AGENTS.md or similar files
+
+Extract and summarize:
+1. Required coding patterns
+2. Forbidden practices
+3. Naming conventions
+4. Testing requirements
+5. PR/commit conventions
+
+Return a structured summary I can include in an implementation plan."
+```
+
+#### Subagent 2: Architecture Analysis
+```
+Prompt: "Analyze this project's architecture and code organization.
+
+Examine:
+- src/ or lib/ directory structure
+- File and folder naming patterns
+- Module organization (by feature vs by type)
+- Key abstractions (services, controllers, repositories, etc.)
+- Import/export patterns
+- Dependency injection patterns
+
+Find 2-3 example files that best represent the project's patterns.
+
+Return a structured summary with specific file path examples."
+```
+
+#### Subagent 3: Testing Patterns
+```
+Prompt: "Analyze this project's testing setup and patterns.
+
+Find and examine:
+- Test configuration (jest.config.*, vitest.config.*, pytest.ini, etc.)
+- Test directory structure (tests/, __tests__/, *.test.*, etc.)
+- Test file naming conventions
+- Mocking patterns and utilities
+- Fixture/factory patterns
+- Coverage requirements
+
+Find 2-3 example test files that demonstrate the patterns.
+
+Return a structured summary with specific examples."
+```
+
+#### Subagent 4: Dependencies & Tooling
+```
+Prompt: "Analyze this project's dependencies and build tooling.
+
+Examine:
+- package.json / pyproject.toml / Cargo.toml
+- Key runtime dependencies
+- Dev dependencies and their purposes
+- Available scripts (build, test, lint, dev)
+- Linting config (eslint, prettier, ruff, etc.)
+- Type checking config (tsconfig, mypy, etc.)
+- CI/CD configuration
+
+Return a structured summary of tooling and commands."
+```
+
+### After Subagents Return
+
+Synthesize results into a unified Project Context Summary.
 
 ### Files to Analyze
 
 | File/Pattern | What to Extract |
-|--------------|-----------------|
 | `.github/copilot-instructions.md` | Copilot-specific guidelines |
 | `.github/instructions/*.md` | Additional instruction files |
 | `CLAUDE.md` / `.claude/settings.json` | Claude-specific instructions |
@@ -142,9 +259,38 @@ Output a "Project Context Summary" I can use when creating implementation plans.
 
 ---
 
-## Step 2: Decompose - Break Spec into Chunks
+## Step 2: Decompose - Break Spec into Chunks (USE SUBAGENT)
+
+**⚡ SUBAGENT STRATEGY: Launch a subagent to analyze the spec and propose decomposition.**
 
 Transform the spec into logical implementation chunks.
+
+### Decomposition Subagent
+
+```
+Prompt: "Analyze this specification and decompose it into implementation chunks.
+
+<SPEC>
+[Paste or reference spec.md content]
+</SPEC>
+
+Break down into these categories:
+1. Foundation: Project setup, config, tooling
+2. Data Layer: Models, schemas, database
+3. Core Logic: Services, business rules
+4. Interface: API routes, UI components
+5. Integration: Wiring, middleware, glue
+6. Polish: Docs, error handling, logging
+
+For each chunk:
+- Give it an ID (F1, D1, C1, etc.)
+- Describe what it implements (1-2 sentences)
+- List what it depends on
+- List what depends on it
+- Estimate complexity (Low/Medium/High)
+
+Return a structured list of all chunks with dependencies mapped."
+```
 
 ### Decomposition Principles
 
@@ -264,9 +410,73 @@ Phase 5: Integration (sequential)
 
 ---
 
-## Step 4: Detail - Write Executable Prompts
+## Step 4: Detail - Write Executable Prompts (SUBAGENT-HEAVY)
+
+**⚡ SUBAGENT STRATEGY: Launch parallel subagents to write prompts for each phase.**
 
 Transform each chunk into a detailed, self-contained prompt.
+
+### Parallel Prompt Generation
+
+Launch subagents for each phase IN PARALLEL:
+
+#### Subagent for Foundation Phase
+```
+Prompt: "Write detailed implementation prompts for the Foundation phase.
+
+<PROJECT_CONTEXT>
+[Include discovered conventions]
+</PROJECT_CONTEXT>
+
+<CHUNKS>
+[Include Foundation chunks: F1, F2, etc.]
+</CHUNKS>
+
+For each chunk, write a complete prompt including:
+1. Context (what it builds on, what it enables)
+2. Project conventions to follow
+3. Specific files to create/modify
+4. Exact code patterns to use (with examples)
+5. Tests to write
+6. Acceptance criteria (checkboxes)
+7. Verification commands
+
+Return ready-to-use implementation prompts."
+```
+
+#### Subagent for Data Layer Phase
+```
+Prompt: "Write detailed implementation prompts for the Data Layer phase.
+
+<PROJECT_CONTEXT>...</PROJECT_CONTEXT>
+<CHUNKS>[D1, D2, D3...]</CHUNKS>
+
+[Same structure as above]"
+```
+
+#### Subagent for Core Logic Phase
+```
+Prompt: "Write detailed implementation prompts for the Core Logic phase.
+
+<PROJECT_CONTEXT>...</PROJECT_CONTEXT>
+<CHUNKS>[C1, C2, C3...]</CHUNKS>
+
+[Same structure as above]"
+```
+
+#### Subagent for Interface Phase
+```
+Prompt: "Write detailed implementation prompts for the Interface phase.
+
+<PROJECT_CONTEXT>...</PROJECT_CONTEXT>
+<CHUNKS>[I1, I2, I3...]</CHUNKS>
+
+[Same structure as above]"
+```
+
+### Assembling the Plan
+
+After all subagents return, assemble prompts in sequence order.
 
 ### Prompt Structure
 
@@ -383,9 +593,52 @@ Handle errors appropriately
 
 ---
 
-## Step 5: Verify - Add Checkpoints
+## Step 5: Verify - Add Checkpoints (USE SUBAGENT)
+
+**⚡ SUBAGENT STRATEGY: Launch a subagent to create comprehensive verification criteria.**
 
 Add verification points throughout the plan.
+
+### Verification Subagent
+
+```
+Prompt: "Create verification checkpoints for this implementation plan.
+
+<SPEC>
+[Include original spec with success criteria]
+</SPEC>
+
+<IMPLEMENTATION_STEPS>
+[Include list of all steps]
+</IMPLEMENTATION_STEPS>
+
+Create:
+
+1. **Per-Step Verification**
+   For each step, specify:
+   - Commands to run (build, lint, test)
+   - Expected output
+   - Common failure modes and fixes
+
+2. **Phase Milestones**
+   After each phase (Foundation, Data, Core, Interface):
+   - Integration checks
+   - Manual verification steps
+   - What should be working
+
+3. **Final Verification Checklist**
+   Map every spec requirement to:
+   - Which step implements it
+   - How to verify it (test, command, manual)
+   - Expected behavior
+
+4. **Rollback Points**
+   For each phase:
+   - What commit to rollback to
+   - How to recover
+
+Return complete verification documentation."
+```
 
 ### Checkpoint Types
 
@@ -558,9 +811,86 @@ If implementation fails at any point:
 
 ---
 
-## Master Prompt for Plan Generation
+## Master Prompt for Plan Generation (SUBAGENT-ORCHESTRATED)
 
-Use this prompt to generate an implementation plan from a spec:
+**\u26a1 Use this workflow to generate implementation plans using parallel subagents.**
+
+### Phase 1: Discovery (Parallel Subagents)
+
+Launch 4 subagents simultaneously:
+
+```
+// Subagent 1: Instructions
+"Read all instruction files in this project (.github/copilot-instructions.md, CLAUDE.md, CONTRIBUTING.md, etc.) and summarize coding conventions, required patterns, and forbidden practices."
+
+// Subagent 2: Architecture  
+"Analyze this project's architecture: directory structure, naming patterns, module organization, key abstractions. Provide specific file examples."
+
+// Subagent 3: Testing
+"Analyze this project's testing setup: framework, file naming, directory structure, mocking patterns, coverage config. Provide specific test file examples."
+
+// Subagent 4: Tooling
+"Analyze this project's dependencies and tooling: package.json/pyproject.toml, available scripts, linting config, type checking. List key commands."
+```
+
+### Phase 2: Decomposition (Single Subagent)
+
+After discovery completes, launch:
+
+```
+"Decompose this spec into implementation chunks.
+
+<SPEC>
+[Paste spec.md content]
+</SPEC>
+
+Break into: Foundation, Data Layer, Core Logic, Interface, Integration, Polish.
+For each chunk: ID, description, dependencies, dependents, complexity estimate.
+Return structured list with dependency graph."
+```
+
+### Phase 3: Detailing (Parallel Subagents)
+
+Launch subagents for each phase simultaneously:
+
+```
+// Subagent A: Foundation prompts
+"Write detailed implementation prompts for Foundation chunks [F1, F2...] using these conventions: [discovery results]"
+
+// Subagent B: Data Layer prompts
+"Write detailed implementation prompts for Data Layer chunks [D1, D2...] using these conventions: [discovery results]"
+
+// Subagent C: Core Logic prompts  
+"Write detailed implementation prompts for Core Logic chunks [C1, C2...] using these conventions: [discovery results]"
+
+// Subagent D: Interface prompts
+"Write detailed implementation prompts for Interface chunks [I1, I2...] using these conventions: [discovery results]"
+```
+
+### Phase 4: Verification (Single Subagent)
+
+After detailing completes, launch:
+
+```
+"Create verification criteria for this implementation plan.
+
+<SPEC>[spec content with success criteria]</SPEC>
+<STEPS>[list of all implementation steps]</STEPS>
+
+Create: per-step verification commands, phase milestones, final checklist mapping spec requirements to verification methods, rollback points."
+```
+
+### Final Assembly
+
+Combine all subagent outputs into:
+- `implementation-plan.md`: Sequenced prompts with verification
+- `todo.md`: Checkbox progress tracker
+
+---
+
+### Alternative: Single-Prompt Approach
+
+If not using subagents, use this consolidated prompt:
 
 ```
 Create a comprehensive implementation plan from this specification.
