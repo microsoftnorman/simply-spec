@@ -14,6 +14,9 @@ irm https://raw.githubusercontent.com/microsoftnorman/simply-spec/main/install.p
 curl -fsSL https://raw.githubusercontent.com/microsoftnorman/simply-spec/main/install.sh | bash
 ```
 
+> **Note:** Existing files are skipped by default to prevent accidental overwrites.  
+> Use `-y` (bash) or `-Force` (PowerShell) to auto-approve overwrites, or run interactively to choose per-file.
+
 <details>
 <summary>View install.sh script</summary>
 
@@ -21,6 +24,9 @@ curl -fsSL https://raw.githubusercontent.com/microsoftnorman/simply-spec/main/in
 #!/bin/bash
 # Simply Spec Installer for Bash/Zsh
 # Usage: curl -fsSL https://raw.githubusercontent.com/microsoftnorman/simply-spec/main/install.sh | bash
+# Options: 
+#   -y, --yes     Auto-approve all overwrites
+#   -n, --no      Skip existing files (never overwrite)
 
 set -e
 
@@ -29,15 +35,45 @@ BRANCH="main"
 SKILLS_PATH=".github/skills"
 BASE_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/.github/skills"
 
+# Parse arguments
+AUTO_APPROVE=""
+SKIP_EXISTING=""
+for arg in "$@"; do
+    case $arg in
+        -y|--yes) AUTO_APPROVE="yes" ;;
+        -n|--no) SKIP_EXISTING="yes" ;;
+    esac
+done
+
 echo -e "\033[36mInstalling Simply Spec skills...\033[0m"
 
 # Create skills directory
 mkdir -p "$SKILLS_PATH"
 
-# Function to download file silently
+# Function to prompt for overwrite
+prompt_overwrite() {
+    local file="$1"
+    if [[ "$AUTO_APPROVE" == "yes" ]]; then return 0; fi
+    if [[ "$SKIP_EXISTING" == "yes" ]]; then return 1; fi
+    if [[ -t 0 ]]; then
+        echo -en "    \033[33mFile exists: $file. Overwrite? [y/N/a(ll)]: \033[0m"
+        read -r response
+        case $response in
+            [yY]) return 0 ;; [aA]) AUTO_APPROVE="yes"; return 0 ;; *) return 1 ;;
+        esac
+    else
+        echo -e "    \033[33mSkipping existing: $file (use -y to overwrite)\033[0m"
+        return 1
+    fi
+}
+
+# Function to download file with overwrite protection
 download_file() {
     local url="$1"
     local dest="$2"
+    if [[ -f "$dest" ]]; then
+        if ! prompt_overwrite "$dest"; then return 0; fi
+    fi
     curl -fsSL "$url" -o "$dest" 2>/dev/null || true
 }
 
