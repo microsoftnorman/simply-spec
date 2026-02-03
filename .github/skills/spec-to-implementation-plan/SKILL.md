@@ -168,13 +168,28 @@ Return a structured summary of tooling and commands."
 
 Synthesize results into a unified Project Context Summary.
 
-### Critical Check: Copilot Instructions File
+### Critical Check: Project Foundation Files
 
-**If `.github/copilot-instructions.md` does not exist, add Step F0 to the plan to create it.**
+After discovery, evaluate what's missing and add F0 steps to establish project foundations:
 
-This file is essential for AI-assisted development. The implementation plan should include creating a comprehensive copilot-instructions.md as the FIRST step if one doesn't exist.
+| Check | If Missing | Action |
+|-------|------------|--------|
+| `.github/copilot-instructions.md` | No AI coding guidelines | Add F0a: Create comprehensive instructions |
+| Architecture patterns | No clear src/ structure or patterns detected | Add F0b: Propose & document architecture |
+| Testing setup | No test framework, no test files | Add F0c: Set up testing infrastructure |
 
-#### F0: Create Copilot Instructions (Add if missing)
+**If ANY of these are missing, the plan should include creating them FIRST.**
+
+The goal is to ensure every project has:
+1. AI-friendly coding guidelines (copilot-instructions.md)
+2. Clear architecture patterns (even if simple)
+3. Testing infrastructure and patterns
+
+---
+
+### F0a: Create Copilot Instructions (if missing)
+
+**Trigger:** No `.github/copilot-instructions.md` found
 
 ```markdown
 ## Step F0: Create Copilot Instructions File
@@ -406,6 +421,435 @@ npm run db:studio    # Open Prisma Studio
 ```
 ```
 
+---
+
+### F0b: Establish Architecture (if not detected)
+
+**Trigger:** No clear directory structure, no service/controller patterns, files scattered without organization.
+
+```markdown
+## Step F0b: Establish Project Architecture
+
+### Context
+No clear architecture patterns detected. This step establishes a scalable, 
+maintainable architecture that AI agents can follow consistently.
+
+### Instructions
+
+Based on the project's tech stack and requirements, establish architecture:
+
+#### For Backend APIs (Node.js/Python/Go):
+
+Create directory structure:
+```
+src/
+├── config/           # Configuration and environment
+│   ├── index.ts      # Config loader
+│   └── env.ts        # Environment validation (zod/joi)
+├── services/         # Business logic (the "brains")
+│   └── [feature].service.ts
+├── routes/           # HTTP handlers (thin, delegate to services)
+│   ├── index.ts      # Route aggregator
+│   └── [feature].routes.ts
+├── models/           # Data models, types, interfaces
+│   └── [entity].model.ts
+├── repositories/     # Data access layer (optional, for complex projects)
+│   └── [entity].repository.ts
+├── middleware/       # Request processing (auth, validation, logging)
+│   ├── auth.ts
+│   ├── validate.ts
+│   └── error-handler.ts
+├── lib/              # Shared utilities
+│   ├── prisma.ts     # Database client
+│   ├── logger.ts     # Logging utility
+│   └── utils.ts      # General helpers
+├── errors/           # Custom error classes
+│   ├── index.ts
+│   ├── http-error.ts
+│   └── validation-error.ts
+└── types/            # TypeScript type definitions
+    └── index.ts
+```
+
+#### For Frontend Apps (React/Vue/Svelte):
+
+Create directory structure:
+```
+src/
+├── components/       # Reusable UI components
+│   ├── ui/           # Primitive components (Button, Input, etc.)
+│   └── features/     # Feature-specific components
+├── pages/            # Route-level components
+│   └── [page]/
+│       ├── index.tsx
+│       └── components/  # Page-specific components
+├── hooks/            # Custom React hooks
+├── services/         # API calls and business logic
+├── stores/           # State management (zustand, redux, etc.)
+├── lib/              # Utilities and helpers
+├── types/            # TypeScript types
+└── styles/           # Global styles, themes
+```
+
+#### For Full-Stack (Next.js/Nuxt/SvelteKit):
+
+Create directory structure:
+```
+src/
+├── app/              # App router pages (Next.js 13+)
+│   ├── api/          # API routes
+│   └── (routes)/     # Page routes
+├── components/       # UI components
+├── server/           # Server-only code
+│   ├── services/     # Business logic
+│   ├── db/           # Database client and queries
+│   └── auth/         # Authentication
+├── lib/              # Shared utilities
+└── types/            # TypeScript types
+```
+
+### Architecture Principles to Document
+
+Add to copilot-instructions.md:
+
+```markdown
+## Architecture Principles
+
+### Separation of Concerns
+- **Routes/Controllers**: HTTP handling only (parse request, call service, send response)
+- **Services**: All business logic (validation, orchestration, rules)
+- **Repositories**: Data access only (queries, persistence)
+
+### Dependency Direction
+```
+Routes → Services → Repositories → Database
+   ↓         ↓            ↓
+ (thin)   (logic)     (data)
+```
+
+### Key Rules
+1. Routes NEVER access database directly
+2. Services are stateless and testable
+3. One service per domain concept
+4. Repositories abstract the database (can swap ORMs)
+5. Errors bubble up through custom error classes
+```
+
+### Acceptance Criteria
+- [ ] Directory structure created and documented
+- [ ] At least one example file in each key directory
+- [ ] Architecture section added to copilot-instructions.md
+- [ ] Dependency direction documented
+
+### Verification
+```bash
+# Check directories exist
+ls -la src/services src/routes src/lib src/errors 2>/dev/null || echo "Create directories"
+# Check copilot instructions has architecture
+grep -q "Architecture" .github/copilot-instructions.md && echo "✓ Has Architecture section"
+```
+```
+
+---
+
+### F0c: Set Up Testing Infrastructure (if not detected)
+
+**Trigger:** No test files, no jest/vitest/pytest config, no `tests/` directory.
+
+```markdown
+## Step F0c: Set Up Testing Infrastructure
+
+### Context
+No testing setup detected. This step establishes comprehensive testing 
+infrastructure that ensures code quality and enables confident refactoring.
+
+### Instructions
+
+#### 1. Install Testing Framework
+
+**For TypeScript/JavaScript (Vitest recommended):**
+```bash
+npm install -D vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom
+```
+
+**For Python (pytest recommended):**
+```bash
+pip install pytest pytest-cov pytest-asyncio factory-boy
+```
+
+**For Go:**
+```bash
+# Built-in testing, but add testify for assertions
+go get github.com/stretchr/testify
+```
+
+#### 2. Create Test Configuration
+
+**vitest.config.ts:**
+```typescript
+import { defineConfig } from 'vitest/config';
+import path from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node', // or 'jsdom' for frontend
+    include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      exclude: ['node_modules', 'tests/fixtures', '**/*.d.ts'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80,
+      },
+    },
+    setupFiles: ['./tests/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+**pytest.ini:**
+```ini
+[pytest]
+testpaths = tests
+python_files = test_*.py
+python_functions = test_*
+addopts = -v --cov=src --cov-report=term-missing --cov-fail-under=80
+asyncio_mode = auto
+```
+
+#### 3. Create Test Directory Structure
+
+```
+tests/
+├── setup.ts              # Global test setup (mocks, env)
+├── factories/            # Test data factories
+│   └── user.factory.ts
+├── fixtures/             # Static test data
+│   └── sample-data.json
+├── helpers/              # Test utilities
+│   └── test-utils.ts
+├── unit/                 # Unit tests (mirror src/ structure)
+│   └── services/
+│       └── user.service.test.ts
+├── integration/          # Integration tests
+│   └── api/
+│       └── users.test.ts
+└── e2e/                  # End-to-end tests
+    └── user-flow.test.ts
+```
+
+#### 4. Create Test Setup File
+
+**tests/setup.ts:**
+```typescript
+import { beforeAll, afterAll, beforeEach, vi } from 'vitest';
+
+// Mock environment variables
+process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+
+// Global setup
+beforeAll(async () => {
+  // Setup test database, seed data, etc.
+});
+
+afterAll(async () => {
+  // Cleanup
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+// Global test utilities
+export const createTestContext = () => ({
+  // Reusable test context
+});
+```
+
+#### 5. Create Test Factory Pattern
+
+**tests/factories/user.factory.ts:**
+```typescript
+import { faker } from '@faker-js/faker';
+
+export const createUser = (overrides = {}) => ({
+  id: faker.string.uuid(),
+  email: faker.internet.email(),
+  name: faker.person.fullName(),
+  createdAt: new Date(),
+  ...overrides,
+});
+
+export const createUsers = (count: number, overrides = {}) =>
+  Array.from({ length: count }, () => createUser(overrides));
+```
+
+#### 6. Create Example Test File
+
+**tests/unit/services/example.service.test.ts:**
+```typescript
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ExampleService } from '@/services/example.service';
+import { prisma } from '@/lib/prisma';
+import { createUser } from '../../factories/user.factory';
+import { NotFoundError } from '@/errors';
+
+// Mock the database
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    user: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+}));
+
+describe('ExampleService', () => {
+  let service: ExampleService;
+
+  beforeEach(() => {
+    service = new ExampleService();
+    vi.clearAllMocks();
+  });
+
+  describe('findById', () => {
+    it('returns user when found', async () => {
+      // Arrange
+      const mockUser = createUser();
+      (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+
+      // Act
+      const result = await service.findById(mockUser.id);
+
+      // Assert
+      expect(result).toEqual(mockUser);
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+      });
+    });
+
+    it('throws NotFoundError when user not found', async () => {
+      // Arrange
+      (prisma.user.findUnique as Mock).mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.findById('nonexistent'))
+        .rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe('create', () => {
+    it('creates user with valid data', async () => {
+      // Arrange
+      const input = { email: 'test@example.com', name: 'Test User' };
+      const mockUser = createUser(input);
+      (prisma.user.create as Mock).mockResolvedValue(mockUser);
+
+      // Act
+      const result = await service.create(input);
+
+      // Assert
+      expect(result).toEqual(mockUser);
+      expect(prisma.user.create).toHaveBeenCalledWith({
+        data: expect.objectContaining(input),
+      });
+    });
+  });
+});
+```
+
+#### 7. Add npm Scripts
+
+Add to package.json:
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
+  }
+}
+```
+
+#### 8. Document Testing in Copilot Instructions
+
+Add to copilot-instructions.md:
+
+```markdown
+## Testing
+
+### Philosophy
+- Test behavior, not implementation
+- Each public method needs tests
+- Test happy path AND error cases
+- Use factories for test data (never hardcode)
+
+### Running Tests
+```bash
+npm test              # Run all tests once
+npm run test:watch    # Watch mode during development
+npm run test:coverage # With coverage report
+```
+
+### Test Structure
+```typescript
+describe('ServiceName', () => {
+  describe('methodName', () => {
+    it('does expected thing when condition', async () => {
+      // Arrange - set up test data and mocks
+      // Act - call the method
+      // Assert - verify the result
+    });
+  });
+});
+```
+
+### Mocking
+- Mock at module boundaries (database, external APIs)
+- Use `vi.mock()` for module mocking
+- Use factories from `tests/factories/`
+- Reset mocks in `beforeEach`
+
+### Coverage Requirements
+- Minimum 80% line coverage
+- All services: 90%+ coverage
+- All error paths tested
+```
+
+### Acceptance Criteria
+- [ ] Test framework installed and configured
+- [ ] vitest.config.ts (or equivalent) created
+- [ ] tests/ directory structure created
+- [ ] Test setup file created
+- [ ] At least one example test file
+- [ ] Factory pattern established
+- [ ] npm test runs successfully
+- [ ] Testing section in copilot-instructions.md
+
+### Verification
+```bash
+npm test              # Should run and pass
+npm run test:coverage # Should show coverage report
+grep -q "Testing" .github/copilot-instructions.md && echo "✓ Testing documented"
+```
+```
+
+---
+
 ### Files to Analyze
 
 | File/Pattern | What to Extract |
@@ -554,8 +998,10 @@ Return a structured list of all chunks with dependencies mapped."
 ```markdown
 ## Implementation Chunks
 
-### Foundation
-- [ ] F0: Create .github/copilot-instructions.md (if missing)
+### Foundation (F0 steps only if missing)
+- [ ] F0a: Create .github/copilot-instructions.md (if missing)
+- [ ] F0b: Establish project architecture (if not detected)
+- [ ] F0c: Set up testing infrastructure (if not detected)
 - [ ] F1: Project initialization and tooling setup
 - [ ] F2: Configuration and environment setup
 

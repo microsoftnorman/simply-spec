@@ -26,11 +26,15 @@ Launch simultaneously:
 
 **After all return:** Synthesize into Project Context Summary.
 
-### Critical Check: Copilot Instructions
+### Critical Check: Project Foundations
 
-**If `.github/copilot-instructions.md` doesn't exist → Add F0 to create it.**
+| Check | If Missing | Add Step |
+|-------|------------|----------|
+| `.github/copilot-instructions.md` | No AI guidelines | F0a |
+| Architecture patterns | No clear structure | F0b |
+| Testing setup | No test framework | F0c |
 
-This is the FIRST step in any plan. A comprehensive copilot-instructions.md ensures all AI-generated code follows project conventions.
+**If ANY missing → Add F0 steps to create them FIRST.**
 
 ---
 
@@ -60,7 +64,7 @@ For each: ID, description, dependencies, dependents, complexity"
 
 | Subagent | Writes Prompts For |
 |----------|-------------------|
-| **Foundation** | F0 (if needed), F1, F2... |
+| **Foundation** | F0a/b/c (if needed), F1, F2... |
 | **Data Layer** | D1, D2, D3... |
 | **Core Logic** | C1, C2, C3... |
 | **Interface** | I1, I2, I3... |
@@ -161,11 +165,12 @@ FINAL: Assemble
 
 ## Quality Checklist
 
-- [ ] .github/copilot-instructions.md exists (or F0 added to create it)
+- [ ] .github/copilot-instructions.md exists (or F0a added)
+- [ ] Architecture patterns documented (or F0b added)
+- [ ] Testing infrastructure exists (or F0c added)
 - [ ] All spec requirements mapped to steps
 - [ ] No step depends on a later step
 - [ ] Each step has verification commands
-- [ ] Project conventions documented
 - [ ] Checkpoints after each phase
 - [ ] Final checklist covers success criteria
 
